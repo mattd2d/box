@@ -162,6 +162,22 @@
     </div>
 
     <script>
+        /* --- 新增：Blynk 配置区 --- */
+const AUTH_TOKEN  = 'OqSFS2EppKQRi0DYBOTFNEQgW7pljRjT';
+const BLYNK_HOST  = 'blynk.cloud';
+const VIRTUAL_PIN = 'V1';
+
+// 通用的硬件触发函数
+function sendToBlynk(value) {
+    const url = `https://${BLYNK_HOST}/external/api/update?token=${AUTH_TOKEN}&${VIRTUAL_PIN}=${value}`;
+    fetch(url)
+        .then(() => console.log(`指令 ${value} 已同步至硬件`))
+        .catch(err => console.error('硬件同步失败:', err));
+}
+/* ------------------------ */
+
+const DB_KEY = 'memobox_v4_unified'; // 原有代码开始...
+        
         const DB_KEY = 'memobox_v4_unified';
         let currentPillarColor = 'red';
         let appState = JSON.parse(localStorage.getItem(DB_KEY)) || { hasGuided: false, firstSaveDone: false, storedVaults: {} };
@@ -234,7 +250,12 @@
 
 function handlePillarClick(color) {
     currentPillarColor = color;
-
+// --- 修改点：点击红色卡片时触发 TURN_90 ---
+    if (color === 'red') {
+        sendToBlynk(1); // 触发舵机 90 度动作
+    }
+    // ---------------------------------------
+    
     // --- 这是新增的特殊逻辑 ---
     if (color === 'green' && appState.storedVaults['green']) {
         // 1. 把绿色容器里的数据传给 demo.html
@@ -280,6 +301,12 @@ function handlePillarClick(color) {
             appState.storedVaults[currentPillarColor] = data;
             appState.firstSaveDone = true;
             updateDB();
+
+            // --- 修改点：数据存储完成，指令舵机复位 ---
+    sendToBlynk(2); 
+    
+    showMainDisplay(currentPillarColor, true);
+}
             showMainDisplay(currentPillarColor, true);
         }
 
@@ -315,6 +342,8 @@ function handlePillarClick(color) {
         }
 
         function returnToBox() {
+            // --- 修改点：退出展示模式，指令舵机复位 ---
+    sendToBlynk(2);
             document.getElementById('main-display').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('main-display').style.display = 'none';
