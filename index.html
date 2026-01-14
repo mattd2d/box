@@ -258,7 +258,8 @@
                     document.getElementById('selection-page').style.display = 'none';
                     const setup = document.getElementById('setup-layer');
                     const colorMap = { red: '#ff4d4d', orange: '#ff944d', yellow: '#ffd14d', green: '#4dff88', blue: '#4d94ff', purple: '#944dff' };
-                    document.getElementById('setup-title').innerText = `${color} vault`;
+                    // 修改为固定的文字：
+document.getElementById('setup-title').innerText = `Something important to you...`;
                     document.getElementById('setup-title').style.color = colorMap[color];
                     document.getElementById('save-btn').style.backgroundColor = colorMap[color];
                     setup.style.display = 'flex';
