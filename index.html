@@ -129,14 +129,14 @@
 
     <div id="setup-layer" class="page-container">
         <div class="setup-card">
-            <h2 id="setup-title">VAULT SETUP</h2>
+            <h2 id="setup-title">Something important to you...</h2>
             <label>OBJECT IMAGE</label>
             <input type="file" id="up-img">
             <label>NAME</label>
             <input type="text" id="up-name" placeholder="Sample Name">
             <label>HISTORY / DESCRIPTION</label>
             <textarea id="up-desc" rows="3" placeholder="Tell the story..."></textarea>
-            <button id="save-btn" class="save-btn" onclick="saveData()">STORE DATA</button>
+            <button id="save-btn" class="save-btn" onclick="saveData()">Save the object</button>
         </div>
     </div>
 
@@ -175,10 +175,10 @@
         let appState = JSON.parse(localStorage.getItem(DB_KEY)) || { hasGuided: false, firstSaveDone: false, storedVaults: {} };
 
         const steps = {
-            portal: "Welcome. Interact with the <b>Kinetic Portal</b> to initialize.",
-            spectrum: "Please select the active <b>Red Vault</b> to begin.",
-            setup: "This is a setup interface. You can upload an image or use the <b>Sample Template</b>.",
-            complete: "Encryption complete. All vaults are now <b>fully active</b>."
+            portal: "Welcome to M-Cube. Tap the box to start.",
+            spectrum: "These are M-cards in this box. Please tap the Red to continue.",
+            setup: "Here, store the story of this object.",
+            complete: "Object saved!"
         };
 
         function triggerGuide(text) {
@@ -214,8 +214,8 @@
 
             if (!withGuide && appState.hasGuided && !appState.storedVaults['green']) {
                 appState.storedVaults['green'] = {
-                    name: "LUCKY BAMBOO",
-                    desc: "Watching it grow. A symbol of persistent life.",
+                    name: "Lucky Bamboo",
+                    desc: "Bought this the day I landed in Delft. It’s been with me through everything—the long nights of studying and all the growing up I’ve done here. it is just there, quiet and steady. Just looking at it makes my day a little brighter.",
                     img: "https://preview.redd.it/my-6-7-year-old-lucky-bamboo-v0-73dtwvzodcqe1.jpeg?width=640&crop=smart&auto=webp&s=f905e4f9b2085d49389f54f3435aad6a3ca6149d"
                 };
                 appState.firstSaveDone = true; 
