@@ -39,37 +39,28 @@
         .kinetic-shape { width: 80px; height: 80px; border: 1.5px solid #fff; cursor: pointer; animation: kineticFlow 4s infinite both; }
         @keyframes kineticFlow { 0%, 30% { width: 80px; height: 80px; } 45%, 75% { width: 24px; height: 120px; } 100% { width: 80px; height: 80px; } }
 
-/* 2. Selection 选择区 - 3x3 九宫格 */
-     /* 2. Selection 选择区 - 3x3 矩阵 */
-        #selection-page { display: none; opacity: 0; z-index: 10000; }
-        .spectrum-container { 
-            display: grid; 
-            grid-template-columns: repeat(3, 80px); 
-            grid-template-rows: repeat(3, 80px); 
-            gap: 20px; 
-        }
-       .grid-item { 
+/* 2. Selection 选择区 */
+        .grid-item { 
             width: 80px; height: 80px; 
-            border-radius: 0; 
+            border-radius: 0; /* 正方形 */
             cursor: pointer; 
             transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
             background: transparent;
             border: 1.5px solid currentColor;
-            /* 移除之前可能存在的 pointer-events: none */
         }
         
-        /* 灰色方块：允许交互以便触发 Hover，但颜色较暗 */
+        /* 颜色定义：确保 gray 没有 pointer-events: none */
         .gray { color: #444; } 
         .pink { color: #F487BC; }
         .green { color: #99E896; }
 
-        /* 所有方块共用的 Hover 效果 */
+        /* 统一的 Hover 效果（保持你之前的 scale 风格） */
         .grid-item:hover { 
             transform: scale(1.1); 
-            filter: brightness(1.5); /* 灰色方块 Hover 时会变亮 */
-            box-shadow: 0 0 15px currentColor;
+            filter: brightness(1.2); 
         }
 
+        /* 实心状态：无白边 */
         .grid-item.filled { 
             background: currentColor !important; 
             border-color: transparent !important; 
