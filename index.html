@@ -39,32 +39,35 @@
         .kinetic-shape { width: 80px; height: 80px; border: 1.5px solid #fff; cursor: pointer; animation: kineticFlow 4s infinite both; }
         @keyframes kineticFlow { 0%, 30% { width: 80px; height: 80px; } 45%, 75% { width: 24px; height: 120px; } 100% { width: 80px; height: 80px; } }
 
-/* 2. Selection 选择区 */
+/* 2. Selection 选择区 - 3x3 九宫格 */
+     /* 2. Selection 选择区 - 3x3 矩阵 */
+        #selection-page { display: none; opacity: 0; z-index: 10000; }
+        .spectrum-container { 
+            display: grid; 
+            grid-template-columns: repeat(3, 80px); 
+            grid-template-rows: repeat(3, 80px); 
+            gap: 20px; 
+        }
         .grid-item { 
             width: 80px; height: 80px; 
-            border-radius: 0; /* 正方形 */
-            cursor: pointer; 
-            transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
-            background: transparent;
-            border: 1.5px solid currentColor;
+            border-radius: 0; /* 彻底去掉圆角 */
+            cursor: pointer; transition: all 0.4s ease;
+            background: transparent; /* 初始透明 */
+            border: 1.5px solid currentColor; /* 线框样式 */
         }
         
-        /* 颜色定义：确保 gray 没有 pointer-events: none */
-        .gray { color: #444; } 
+        /* 颜色定义：初始仅边框颜色，filled状态变实心 */
+        .gray { color: #444; pointer-events: none; }
         .pink { color: #F487BC; }
         .green { color: #99E896; }
 
-        /* 统一的 Hover 效果（保持你之前的 scale 风格） */
-        .grid-item:hover { 
-            transform: scale(1.1); 
-            filter: brightness(1.2); 
-        }
-
-        /* 实心状态：无白边 */
+        /* 实心状态：去掉白边，应用自身颜色背景 */
         .grid-item.filled { 
             background: currentColor !important; 
             border-color: transparent !important; 
         }
+
+        .grid-item:hover { transform: scale(1.1); filter: brightness(1.2); }
         
         /* 3. Setup UI */
         #setup-layer { display: none; opacity: 0; z-index: 20000; }
@@ -226,11 +229,11 @@ function showSelectionPage(withGuide) {
             const page = document.getElementById('selection-page');
             page.style.display = 'flex';
 
-            // 绿色数据自动填充逻辑保持不变
+            // 逻辑：如果不是第一次引导（即存过东西回来了），则激活绿色卡片并填充数据
             if (!withGuide && appState.hasGuided && !appState.storedVaults['6']) {
                 appState.storedVaults['6'] = {
                     name: "Lucky Bamboo",
-                    desc: "Bought this the day I landed in Delft. It’s been with me through everything...",
+                    desc: "Bought this the day I landed in Delft...",
                     img: "https://preview.redd.it/my-6-7-year-old-lucky-bamboo-v0-73dtwvzodcqe1.jpeg?width=640&crop=smart&auto=webp&s=f905e4f9b2085d49389f54f3435aad6a3ca6149d"
                 };
                 appState.firstSaveDone = true;
@@ -241,34 +244,48 @@ function showSelectionPage(withGuide) {
             items.forEach(p => {
                 const id = p.id.split('-')[1];
                 
-                // 允许所有方块响应鼠标，以便触发 CSS 的 Hover
-                p.style.pointerEvents = 'auto';
-
-                // 视觉上的区分
                 if (withGuide) {
-                    p.style.opacity = (id === '5') ? '1' : '0.3';
+                    // 第一次进入：只有5号(粉色)可点
+                    if (id === '5') {
+                        p.style.pointerEvents = 'auto';
+                        p.style.opacity = '1';
+                    } else {
+                        p.style.pointerEvents = 'none';
+                        p.style.opacity = '0.3';
+                    }
                 } else {
-                    p.style.opacity = (id === '5' || id === '6') ? '1' : '0.3';
+                    // 存完回来：5和6都可点
+                    if (id === '5' || id === '6') {
+                        p.style.pointerEvents = 'auto';
+                        p.style.opacity = '1';
+                    } else {
+                        p.style.pointerEvents = 'none';
+                        p.style.opacity = '0.3';
+                    }
                 }
 
-                if (appState.storedVaults[id]) p.classList.add('filled');
+                // 如果该位置有数据，变实心
+                if (appState.storedVaults[id]) {
+                    p.classList.add('filled');
+                } else {
+                    p.classList.remove('filled');
+                }
             });
 
-            setTimeout(() => { page.style.opacity = '1'; }, 50);
+            setTimeout(() => { 
+                page.style.opacity = '1'; 
+                if(withGuide) triggerGuide("Select the Pink card to start."); 
+            }, 50);
         }
 
-       function handlePillarClick(id) {
-            // 核心拦截：如果是灰色方块（非5、6），点击直接返回，什么都不发生
+        function handlePillarClick(id) {
             if (id !== '5' && id !== '6') return;
-
-            // 引导状态下如果还没存过粉色，不允许点绿色
-            if (!appState.firstSaveDone && id === '6') return;
-            
             currentPillarColor = id;
             const colorMap = { '5': '#F487BC', '6': '#99E896' };
             
-            if (id === '5') { sendToBlynk(1); }
+            if (id === '5') { sendToBlynk(1); } // 粉色触发指令1
             
+            // 6号绿色跳转逻辑
             if (id === '6' && appState.storedVaults['6']) {
                 localStorage.setItem('memo_config', JSON.stringify(appState.storedVaults['6']));
                 window.location.href = 'demo.html'; 
