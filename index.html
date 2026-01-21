@@ -226,11 +226,11 @@ function showSelectionPage(withGuide) {
             const page = document.getElementById('selection-page');
             page.style.display = 'flex';
 
-            // 绿色数据自动填充逻辑保持不变...
+            // 绿色数据自动填充逻辑保持不变
             if (!withGuide && appState.hasGuided && !appState.storedVaults['6']) {
                 appState.storedVaults['6'] = {
                     name: "Lucky Bamboo",
-                    desc: "Bought this the day I landed in Delft...",
+                    desc: "Bought this the day I landed in Delft. It’s been with me through everything...",
                     img: "https://preview.redd.it/my-6-7-year-old-lucky-bamboo-v0-73dtwvzodcqe1.jpeg?width=640&crop=smart&auto=webp&s=f905e4f9b2085d49389f54f3435aad6a3ca6149d"
                 };
                 appState.firstSaveDone = true;
@@ -241,32 +241,27 @@ function showSelectionPage(withGuide) {
             items.forEach(p => {
                 const id = p.id.split('-')[1];
                 
-                // 确保所有方块都能接收鼠标事件（以便 Hover）
+                // 允许所有方块响应鼠标，以便触发 CSS 的 Hover
                 p.style.pointerEvents = 'auto';
 
+                // 视觉上的区分
                 if (withGuide) {
-                    // 第一次进入：粉色高亮，其余半透明
-                    p.style.opacity = (id === '5') ? '1' : '0.2';
+                    p.style.opacity = (id === '5') ? '1' : '0.3';
                 } else {
-                    // 存完回来：粉色和绿色高亮
-                    p.style.opacity = (id === '5' || id === '6') ? '1' : '0.2';
+                    p.style.opacity = (id === '5' || id === '6') ? '1' : '0.3';
                 }
 
-                if (appState.storedVaults[id]) {
-                    p.classList.add('filled');
-                } else {
-                    p.classList.remove('filled');
-                }
+                if (appState.storedVaults[id]) p.classList.add('filled');
             });
 
             setTimeout(() => { page.style.opacity = '1'; }, 50);
         }
 
        function handlePillarClick(id) {
-            // 拦截：如果点击的不是 5 或 6，直接退出，不执行任何跳转
+            // 核心拦截：如果是灰色方块（非5、6），点击直接返回，什么都不发生
             if (id !== '5' && id !== '6') return;
 
-            // 特殊限制：如果是第一次引导，且点击了 6号，也拦截（直到 5号存完数据）
+            // 引导状态下如果还没存过粉色，不允许点绿色
             if (!appState.firstSaveDone && id === '6') return;
             
             currentPillarColor = id;
@@ -279,8 +274,6 @@ function showSelectionPage(withGuide) {
                 window.location.href = 'demo.html'; 
                 return;
             }
-
-            // ... 后续逻辑（showMainDisplay 或 setup-layer）保持不变 ...
 
             if (appState.storedVaults[id]) {
                 showMainDisplay(id);
