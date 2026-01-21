@@ -39,21 +39,26 @@
         .kinetic-shape { width: 80px; height: 80px; border: 1.5px solid #fff; cursor: pointer; animation: kineticFlow 4s infinite both; }
         @keyframes kineticFlow { 0%, 30% { width: 80px; height: 80px; } 45%, 75% { width: 24px; height: 120px; } 100% { width: 80px; height: 80px; } }
 
-        /* 2. Selection 选择区 */
+/* 2. Selection 选择区 - 3x3 九宫格 */
         #selection-page { display: none; opacity: 0; z-index: 10000; }
-        .spectrum-container { display: flex; gap: 40px; align-items: center; }
-        .color-pillar { 
-            width: 24px; height: 120px; border: 1.5px solid currentColor; 
-            cursor: pointer; transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
-            filter: saturate(0.2) opacity(0.4);
+        .spectrum-container { 
+            display: grid; 
+            grid-template-columns: repeat(3, 80px); 
+            grid-template-rows: repeat(3, 80px); 
+            gap: 20px; 
         }
-        .color-pillar.red { filter: saturate(1) opacity(1); }
-        .color-pillar.fully-active { filter: saturate(1) opacity(1); }
-        .color-pillar:hover { transform: scale(1.2); filter: saturate(1.2) opacity(1); }
-        .color-pillar.filled { background: currentColor; }
-
-        .red { color: #ff4d4d; } .orange { color: #ff944d; } .yellow { color: #ffd14d; }
-        .green { color: #4dff88; } .blue { color: #4d94ff; } .purple { color: #944dff; }
+        .grid-item { 
+            width: 80px; height: 80px; border-radius: 15px;
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        /* 颜色定义 */
+        .gray { background: #333333; opacity: 0.3; cursor: default; }
+        .pink { background: #F487BC; box-shadow: 0 0 15px rgba(244,135,188,0.2); }
+        .green { background: #99E896; box-shadow: 0 0 15px rgba(153,232,150,0.2); }
+        
+        .grid-item:hover { transform: scale(1.1); filter: brightness(1.2); }
+        .grid-item.filled { border: 2px solid #fff; }
 
         /* 3. Setup UI */
         #setup-layer { display: none; opacity: 0; z-index: 20000; }
@@ -117,14 +122,17 @@
     </div>
 
     <div id="selection-page" class="page-container">
-        <div class="spectrum-container">
-            <div id="pillar-red" class="color-pillar red" onclick="handlePillarClick('red')"></div>
-            <div id="pillar-orange" class="color-pillar orange" onclick="handlePillarClick('orange')"></div>
-            <div id="pillar-yellow" class="color-pillar yellow" onclick="handlePillarClick('yellow')"></div>
-            <div id="pillar-green" class="color-pillar green" onclick="handlePillarClick('green')"></div>
-            <div id="pillar-blue" class="color-pillar blue" onclick="handlePillarClick('blue')"></div>
-            <div id="pillar-purple" class="color-pillar purple" onclick="handlePillarClick('purple')"></div>
-        </div>
+       <div class="spectrum-container">
+    <div id="pillar-1" class="grid-item gray" onclick="handlePillarClick('1')"></div>
+    <div id="pillar-2" class="grid-item gray" onclick="handlePillarClick('2')"></div>
+    <div id="pillar-3" class="grid-item gray" onclick="handlePillarClick('3')"></div>
+    <div id="pillar-4" class="grid-item gray" onclick="handlePillarClick('4')"></div>
+    <div id="pillar-5" class="grid-item pink" onclick="handlePillarClick('5')"></div> 
+           <div id="pillar-6" class="grid-item green" onclick="handlePillarClick('6')"></div>
+           <div id="pillar-7" class="grid-item gray" onclick="handlePillarClick('7')"></div>
+    <div id="pillar-8" class="grid-item gray" onclick="handlePillarClick('8')"></div>
+    <div id="pillar-9" class="grid-item gray" onclick="handlePillarClick('9')"></div>
+</div>
     </div>
 
     <div id="setup-layer" class="page-container">
@@ -176,7 +184,7 @@
 
         const steps = {
             portal: "Welcome to M-Cube. Tap the box to start.",
-            spectrum: "These are M-cards in this box. Please tap the Red to continue.",
+            spectrum: "These are M-cards in this box. Please tap the Pink to continue.",
             setup: "Here, store the story of this object.",
             complete: "Object saved!"
         };
@@ -208,66 +216,62 @@
             }, 400);
         }
 
-        function showSelectionPage(withGuide) {
+function showSelectionPage(withGuide) {
             const page = document.getElementById('selection-page');
             page.style.display = 'flex';
 
-            if (!withGuide && appState.hasGuided && !appState.storedVaults['green']) {
-                appState.storedVaults['green'] = {
-                    name: "Lucky Bamboo",
-                    desc: "Bought this the day I landed in Delft. It’s been with me through everything—the long nights of studying and all the growing up I’ve done here. it is just there, quiet and steady. Just looking at it makes my day a little brighter.",
-                    img: "https://preview.redd.it/my-6-7-year-old-lucky-bamboo-v0-73dtwvzodcqe1.jpeg?width=640&crop=smart&auto=webp&s=f905e4f9b2085d49389f54f3435aad6a3ca6149d"
-                };
-                appState.firstSaveDone = true; 
-                updateDB();
-            }
-
-            const pillars = document.querySelectorAll('.color-pillar');
-            pillars.forEach(p => {
-                const colorId = p.id.split('-')[1];
-                if (withGuide && p.id !== 'pillar-red') {
-                    p.style.pointerEvents = 'none'; p.style.opacity = '0.5';
+            const items = document.querySelectorAll('.grid-item');
+            items.forEach(p => {
+                const id = p.id.split('-')[1];
+                // 只有 5 和 6 允许点击
+                if (id === '5' || id === '6') {
+                    p.style.pointerEvents = 'auto';
                 } else {
-                    p.style.pointerEvents = 'auto'; p.style.opacity = '1';
+                    p.style.pointerEvents = 'none';
                 }
-                if (appState.firstSaveDone) p.classList.add('fully-active');
-                if (appState.storedVaults[colorId]) p.classList.add('filled');
+                // 如果存过内容，加上已填充样式
+                if (appState.storedVaults[id]) p.classList.add('filled');
             });
 
-            setTimeout(() => { page.style.opacity = '1'; if(withGuide) triggerGuide(steps.spectrum); }, 50);
+            setTimeout(() => { 
+                page.style.opacity = '1'; 
+                if(withGuide) triggerGuide("Select a card to explore."); 
+            }, 50);
         }
 
-        function handlePillarClick(color) {
-            currentPillarColor = color;
+        function handlePillarClick(id) {
+            // 限制：只能点击 5号 和 6号
+            if (id !== '5' && id !== '6') return;
             
-            // 动作1：点击红卡触发硬件
-            if (color === 'red') { sendToBlynk(1); }
+            currentPillarColor = id;
+            const colorMap = { '5': '#F487BC', '6': '#99E896' };
             
-            // 绿色跳转逻辑
-            if (color === 'green' && appState.storedVaults['green']) {
-                localStorage.setItem('memo_config', JSON.stringify(appState.storedVaults['green']));
+            // 动作：5号粉色触发原有的红色硬件指令
+            if (id === '5') { sendToBlynk(1); }
+            
+            // 特殊逻辑：6号绿色跳转 demo.html
+            if (id === '6' && appState.storedVaults['6']) {
+                localStorage.setItem('memo_config', JSON.stringify(appState.storedVaults['6']));
                 window.location.href = 'demo.html'; 
                 return;
             }
 
-            if (appState.storedVaults[color]) {
-                showMainDisplay(color);
+            // 常规显示或进入设置页面
+            if (appState.storedVaults[id]) {
+                showMainDisplay(id);
             } else {
                 document.getElementById('selection-page').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('selection-page').style.display = 'none';
                     const setup = document.getElementById('setup-layer');
-                    const colorMap = { red: '#ff4d4d', orange: '#ff944d', yellow: '#ffd14d', green: '#4dff88', blue: '#4d94ff', purple: '#944dff' };
-                    // 修改为固定的文字：
-document.getElementById('setup-title').innerText = `Something important to you...`;
-                    document.getElementById('setup-title').style.color = colorMap[color];
-                    document.getElementById('save-btn').style.backgroundColor = colorMap[color];
+                    document.getElementById('setup-title').innerText = `Something important to you...`;
+                    document.getElementById('setup-title').style.color = colorMap[id];
+                    document.getElementById('save-btn').style.backgroundColor = colorMap[id];
                     setup.style.display = 'flex';
                     setTimeout(() => { setup.style.opacity = '1'; triggerGuide(steps.setup); }, 20);
                 }, 400);
             }
         }
-
         function saveData() {
             const file = document.getElementById('up-img').files[0];
             const data = {
@@ -291,8 +295,9 @@ document.getElementById('setup-title').innerText = `Something important to you..
         }
 
         function showMainDisplay(color, isFirst = false) {
-            const d = appState.storedVaults[color];
-            const colorMap = { red: '#ff4d4d', orange: '#ff944d', yellow: '#ffd14d', green: '#4dff88', blue: '#4d94ff', purple: '#944dff' };
+const d = appState.storedVaults[color];
+            // 更新颜色映射表
+            const colorMap = { '5': '#F487BC', '6': '#99E896', '1':'#333','2':'#333','3':'#333','4':'#333','7':'#333','8':'#333','9':'#333' };
             const avatarContainer = document.getElementById('avatar-container');
             avatarContainer.style.borderColor = colorMap[color];
             avatarContainer.style.boxShadow = `0 30px 80px rgba(0,0,0,0.5), 0 0 15px ${colorMap[color]}33`;
