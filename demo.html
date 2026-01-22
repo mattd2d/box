@@ -293,6 +293,7 @@ function sendToBlynk(value) {
     }
 
     function openModal(b) {
+        sendToBlynk(4);
         currentActiveBubble = b;
         const list = document.getElementById('comment-list');
         list.innerHTML = ""; b.comments.forEach(c => addCommentToUI(c.text, c.type, false));
