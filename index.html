@@ -379,23 +379,25 @@ const d = appState.storedVaults[color];
         }
 
 function resetSystem() {
-    // 1. 只要点击按钮，立即发送指令 3
+    // 1. 立即发起指令 3 的请求
     sendToBlynk(3);
-    console.log("已点击重置按钮，发送指令: 3");
+    console.log("指令 3 已发起请求...");
 
-    // 2. 弹出确认窗口
-    if (confirm("Erase all system data?")) {
-        // 用户点击“确定”：执行清空逻辑
-        localStorage.removeItem(DB_KEY);
-        // 稍微延迟刷新，确保数据清除动作完成
-        setTimeout(() => {
-            location.reload();
-        }, 300);
-    } else {
-        // 3. 用户点击“取消”：发送指令 4
-        sendToBlynk(4);
-        console.log("用户选择取消，发送指令: 4");
-    }
+    // 2. 使用 setTimeout 将弹窗逻辑推迟 100 毫秒执行
+    // 这样可以确保浏览器先处理完指令 3 的网络发送任务
+    setTimeout(() => {
+        if (confirm("Erase all system data?")) {
+            // 用户点击“确定”
+            localStorage.removeItem(DB_KEY);
+            setTimeout(() => {
+                location.reload();
+            }, 300);
+        } else {
+            // 用户点击“取消”，发起指令 4
+            sendToBlynk(4);
+            console.log("指令 4 已发起请求...");
+        }
+    }, 100); 
 }
 
         function updateDB() { localStorage.setItem(DB_KEY, JSON.stringify(appState)); }
