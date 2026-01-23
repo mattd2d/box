@@ -210,18 +210,17 @@
 
         /* --- 新增：进入网页直接加载九宫格 --- */
 window.onload = () => {
-    // 隐藏掉原本的引导遮罩层
-    const overlay = document.getElementById('tutorial-overlay');
-    if (overlay) overlay.style.display = 'none';
-    
-    // --- 核心修改：检测并激活绿色 6 号 ---
-    // 如果已经完成过引导，或者 5 号、6 号中任何一个有数据，说明不再是 Reset 后的初始态
-    if (appState.hasGuided || Object.keys(appState.storedVaults).length > 0) {
-        appState.isLocked6 = false; // 强制激活
+    // 确保在逻辑开始前获取最新的本地存储数据
+    appState = JSON.parse(localStorage.getItem(DB_KEY)) || { hasGuided: false, firstSaveDone: false, storedVaults: {} };
+
+    // 核心：从 demo 返回或刷新时解锁 6 号
+    // 判断条件：如果已经有 6 号数据，说明它不应该是锁定状态
+    if (appState.storedVaults && appState.storedVaults['6']) {
+        appState.isLocked6 = false;
         updateDB();
     }
     
-    // 根据是否引导过，决定显示模式
+    // 如果没有引导过，展示引导页；如果引导过了，直接展示盒子页
     showSelectionPage(!appState.hasGuided);
 };
         
@@ -422,16 +421,14 @@ const d = appState.storedVaults[color];
 function returnToBox() {
     sendToBlynk(2); 
     
-    // 解除锁定
-    if (appState.isLocked6) {
-        appState.isLocked6 = false;
-        updateDB();
-    }
+function returnToBox() {
+    sendToBlynk(2); 
+    appState.isLocked6 = false; // 解锁
+    updateDB(); // 必须存一下，否则刷新页面可能又回去了
     
     document.getElementById('main-display').style.opacity = '0';
     setTimeout(() => {
         document.getElementById('main-display').style.display = 'none';
-        // 关键：传 false 进去，这样 showSelectionPage 就会走非引导逻辑
         showSelectionPage(false); 
     }, 500);
 }
