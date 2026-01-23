@@ -214,6 +214,13 @@ window.onload = () => {
     const overlay = document.getElementById('tutorial-overlay');
     if (overlay) overlay.style.display = 'none';
     
+    // --- 核心修改：检测并激活绿色 6 号 ---
+    // 如果已经完成过引导，或者 5 号、6 号中任何一个有数据，说明不再是 Reset 后的初始态
+    if (appState.hasGuided || Object.keys(appState.storedVaults).length > 0) {
+        appState.isLocked6 = false; // 强制激活
+        updateDB();
+    }
+    
     // 根据是否引导过，决定显示模式
     showSelectionPage(!appState.hasGuided);
 };
