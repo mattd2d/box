@@ -39,16 +39,19 @@
 @keyframes dropIn {
     0% { 
         opacity: 0; 
-        transform: translateY(-30px) scale(0.9); /* 增加缩放，更有张力 */
+        transform: translateY(-30px); 
     }
+    /* 删掉 100% 里的 opacity: 1，只保留位移 */
     100% { 
-        opacity: 1; 
-        transform: translateY(0) scale(1); 
+        transform: translateY(0); 
     }
 }
 
 .animate-in {
-    animation: dropIn 0.6s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+    /* 将 forwards 改为 none，防止它锁定属性 */
+    animation: dropIn 0.6s cubic-bezier(0.2, 1, 0.3, 1) none;
+    /* 动画结束后，让元素回到它原本在 JS 里设置的透明度 */
+    animation-fill-mode: backwards; 
 }
 
 /* 初始状态设为透明 */
@@ -87,7 +90,12 @@
             border-color: transparent !important; 
         }
 
-        .grid-item:hover { transform: scale(1.1); filter: brightness(1.2); }
+/* 找到这一行并修改 */
+.grid-item:hover { 
+    transform: scale(1.1) !important; 
+    filter: brightness(1.2) !important; 
+    z-index: 100; /* 确保放大时在最上层 */
+}
         
         /* 3. Setup UI */
         #setup-layer { display: none; opacity: 0; z-index: 20000; }
@@ -275,21 +283,21 @@ function showSelectionPage(withGuide) {
         p.classList.add('animate-in');
 
         // 设置点击权限
-        if (withGuide) {
+if (withGuide) {
             if (id === '5') {
                 p.style.pointerEvents = 'auto';
-                p.style.opacity = '1';
+                p.style.opacity = '1';       // 5号完全显示
             } else {
                 p.style.pointerEvents = 'none';
-                p.style.opacity = '0.2';
+                p.style.opacity = '0.2';     // 其他变透明
             }
         } else {
             if (id === '5' || id === '6') {
                 p.style.pointerEvents = 'auto';
-                p.style.opacity = '1';
+                p.style.opacity = '1';       // 5, 6号完全显示
             } else {
                 p.style.pointerEvents = 'none';
-                p.style.opacity = '0.2';
+                p.style.opacity = '0.2';     // 其他变透明
             }
         }
 
