@@ -35,9 +35,26 @@
 
         .page-container { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; transition: opacity 0.6s ease; }
 
-        /* 1. Portal 传送门 */
-        .kinetic-shape { width: 80px; height: 80px; border: 1.5px solid #fff; cursor: pointer; animation: kineticFlow 4s infinite both; }
-        @keyframes kineticFlow { 0%, 30% { width: 80px; height: 80px; } 45%, 75% { width: 24px; height: 120px; } 100% { width: 80px; height: 80px; } }
+/* 新增：掉落显现动画 */
+@keyframes dropIn {
+    0% { 
+        opacity: 0; 
+        transform: translateY(-30px) scale(0.9); /* 增加缩放，更有张力 */
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+    }
+}
+
+.animate-in {
+    animation: dropIn 0.6s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+}
+
+/* 初始状态设为透明 */
+.grid-item {
+    opacity: 0;
+}
 
 /* 2. Selection 选择区 - 3x3 九宫格 */
      /* 2. Selection 选择区 - 3x3 矩阵 */
@@ -135,9 +152,6 @@
         </div>
     </div>
 
-    <div id="tutorial-overlay" class="page-container">
-        <div class="kinetic-shape" onclick="finishGuide()"></div>
-    </div>
 
     <div id="selection-page" class="page-container">
        <div class="spectrum-container">
@@ -185,6 +199,17 @@
     </div>
 
     <script>
+
+        /* --- 新增：进入网页直接加载九宫格 --- */
+window.onload = () => {
+    // 隐藏掉原本的引导遮罩层
+    const overlay = document.getElementById('tutorial-overlay');
+    if (overlay) overlay.style.display = 'none';
+    
+    // 根据是否引导过，决定显示模式
+    showSelectionPage(!appState.hasGuided);
+};
+        
         /* --- Blynk 配置 --- */
         const AUTH_TOKEN  = 'OqSFS2EppKQRi0DYBOTFNEQgW7pljRjT';
         const BLYNK_HOST  = 'blynk.cloud';
@@ -215,77 +240,69 @@
         }
         function closeGuide() { document.getElementById('guide-mask').classList.remove('active'); }
 
-        window.onload = () => {
-            if (appState.hasGuided) {
-                document.getElementById('tutorial-overlay').style.display = 'none';
-                showSelectionPage(false); 
-            } else {
-                triggerGuide(steps.portal);
-            }
-        };
 
-        function finishGuide() {
-            appState.hasGuided = true;
-            updateDB();
-            document.getElementById('tutorial-overlay').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('tutorial-overlay').style.display = 'none';
-                showSelectionPage(true);
-            }, 400);
-        }
 
 function showSelectionPage(withGuide) {
-            const page = document.getElementById('selection-page');
-            page.style.display = 'flex';
+    const page = document.getElementById('selection-page');
+    page.style.display = 'flex';
+    page.style.opacity = '1';
 
-            // 逻辑：如果不是第一次引导（即存过东西回来了），则激活绿色卡片并填充数据
-            if (!withGuide && appState.hasGuided && !appState.storedVaults['6']) {
-                appState.storedVaults['6'] = {
-                    name: "Lucky Bamboo",
-                    desc: "Bought this the day I landed in Delft...",
-                    img: "https://preview.redd.it/my-6-7-year-old-lucky-bamboo-v0-73dtwvzodcqe1.jpeg?width=640&crop=smart&auto=webp&s=f905e4f9b2085d49389f54f3435aad6a3ca6149d"
-                };
-                appState.firstSaveDone = true;
-                updateDB();
+    // 自动填充绿色 Lucky Bamboo 数据（你的原有逻辑）
+    if (!withGuide && appState.hasGuided && !appState.storedVaults['6']) {
+        appState.storedVaults['6'] = {
+            name: "Lucky Bamboo",
+            desc: "Bought this the day I landed in Delft...",
+            img: "https://preview.redd.it/my-6-7-year-old-lucky-bamboo-v0-73dtwvzodcqe1.jpeg?width=640&crop=smart&auto=webp&s=f905e4f9b2085d49389f54f3435aad6a3ca6149d"
+        };
+        updateDB();
+    }
+
+    const items = Array.from(document.querySelectorAll('.grid-item'));
+    
+    // 【核心】生成 0-8 的随机顺序数组
+    const randomOrder = [0,1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
+
+    items.forEach((p, index) => {
+        const id = p.id.split('-')[1];
+        
+        // 强制重置动画
+        p.classList.remove('animate-in');
+        void p.offsetWidth; 
+
+        // 设置随机延迟：appearanceIndex 是该方块在随机序列里的位置
+        const appearanceIndex = randomOrder.indexOf(index);
+        p.style.animationDelay = `${appearanceIndex * 0.08}s`; 
+        p.classList.add('animate-in');
+
+        // 设置点击权限
+        if (withGuide) {
+            if (id === '5') {
+                p.style.pointerEvents = 'auto';
+                p.style.opacity = '1';
+            } else {
+                p.style.pointerEvents = 'none';
+                p.style.opacity = '0.2';
             }
-
-            const items = document.querySelectorAll('.grid-item');
-            items.forEach(p => {
-                const id = p.id.split('-')[1];
-                
-                if (withGuide) {
-                    // 第一次进入：只有5号(粉色)可点
-                    if (id === '5') {
-                        p.style.pointerEvents = 'auto';
-                        p.style.opacity = '1';
-                    } else {
-                        p.style.pointerEvents = 'none';
-                        p.style.opacity = '0.3';
-                    }
-                } else {
-                    // 存完回来：5和6都可点
-                    if (id === '5' || id === '6') {
-                        p.style.pointerEvents = 'auto';
-                        p.style.opacity = '1';
-                    } else {
-                        p.style.pointerEvents = 'none';
-                        p.style.opacity = '0.3';
-                    }
-                }
-
-                // 如果该位置有数据，变实心
-                if (appState.storedVaults[id]) {
-                    p.classList.add('filled');
-                } else {
-                    p.classList.remove('filled');
-                }
-            });
-
-            setTimeout(() => { 
-                page.style.opacity = '1'; 
-                if(withGuide) triggerGuide("Select the Pink card to start."); 
-            }, 50);
+        } else {
+            if (id === '5' || id === '6') {
+                p.style.pointerEvents = 'auto';
+                p.style.opacity = '1';
+            } else {
+                p.style.pointerEvents = 'none';
+                p.style.opacity = '0.2';
+            }
         }
+
+        // 检查是否存过东西
+        if (appState.storedVaults[id]) {
+            p.classList.add('filled');
+        } else {
+            p.classList.remove('filled');
+        }
+    });
+
+    if(withGuide) triggerGuide("Select the Pink card to start."); 
+}
 
         function handlePillarClick(id) {
             if (id !== '5' && id !== '6') return;
@@ -379,23 +396,15 @@ const d = appState.storedVaults[color];
         }
 
 function resetSystem() {
-    // 1. 立即发起指令 3 的请求
     sendToBlynk(3);
-    console.log("指令 3 已发起请求...");
-
-    // 2. 使用 setTimeout 将弹窗逻辑推迟 100 毫秒执行
-    // 这样可以确保浏览器先处理完指令 3 的网络发送任务
     setTimeout(() => {
-        if (confirm("Erase all system data?")) {
-            // 用户点击“确定”
+        if (confirm("Restart?")) {
             localStorage.removeItem(DB_KEY);
-            setTimeout(() => {
-                location.reload();
-            }, 300);
+            // 修改这里：手动重置内存数据并直接调用显示，效果更平滑
+            appState = { hasGuided: false, firstSaveDone: false, storedVaults: {} };
+            showSelectionPage(true); 
         } else {
-            // 用户点击“取消”，发起指令 4
             sendToBlynk(4);
-            console.log("指令 4 已发起请求...");
         }
     }, 100); 
 }
