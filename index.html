@@ -295,32 +295,37 @@
         if(withGuide) triggerGuide(steps.spectrum);
     }
 
-    function handlePillarClick(id) {
-        if (id !== '5' && id !== '6') return;
-        currentPillarColor = id;
+   function handlePillarClick(id) {
+    if (id !== '5' && id !== '6') return;
+    currentPillarColor = id;
 
-        if (id === '6') {
-            localStorage.setItem('memo_config', JSON.stringify(appState.storedVaults['6']));
-            window.location.href = 'demo.html';
-            return;
-        }
-
-        if (appState.storedVaults[id]) {
-            showMainDisplay(id);
-        } else {
-            sendToBlynk(1);
-            document.getElementById('selection-page').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('selection-page').style.display = 'none';
-                const setup = document.getElementById('setup-layer');
-                const colorMap = { '5': '#F487BC', '6': '#99E896' };
-                document.getElementById('setup-title').style.color = colorMap[id];
-                document.getElementById('save-btn').style.backgroundColor = colorMap[id];
-                setup.style.display = 'flex';
-                setTimeout(() => { setup.style.opacity = '1'; triggerGuide(steps.setup); }, 20);
-            }, 400);
-        }
+    // --- 1. 只要点击 5 号粉色，无论是否存过，都发送指令 1 ---
+    if (id === '5') { 
+        sendToBlynk(1); 
     }
+
+    if (id === '6') {
+        localStorage.setItem('memo_config', JSON.stringify(appState.storedVaults['6']));
+        window.location.href = 'demo.html';
+        return;
+    }
+
+    // --- 2. 这里的逻辑保持不变 ---
+    if (appState.storedVaults[id]) {
+        showMainDisplay(id);
+    } else {
+        document.getElementById('selection-page').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('selection-page').style.display = 'none';
+            const setup = document.getElementById('setup-layer');
+            const colorMap = { '5': '#F487BC', '6': '#99E896' };
+            document.getElementById('setup-title').style.color = colorMap[id];
+            document.getElementById('save-btn').style.backgroundColor = colorMap[id];
+            setup.style.display = 'flex';
+            setTimeout(() => { setup.style.opacity = '1'; triggerGuide(steps.setup); }, 20);
+        }, 400);
+    }
+}
 
     function returnToBox() {
         sendToBlynk(2); 
