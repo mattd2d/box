@@ -340,13 +340,13 @@
     }
 
     function resetSystem() {
-        sendToBlynk(3);
+        
         setTimeout(() => {
             if (confirm("Restart?")) {
                 localStorage.removeItem(DB_KEY);
                 location.reload(); 
             } else {
-                sendToBlynk(4);
+                
             }
         }, 100); 
     }
